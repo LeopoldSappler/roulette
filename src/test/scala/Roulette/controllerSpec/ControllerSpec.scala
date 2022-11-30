@@ -54,7 +54,6 @@ class ControllerSpec extends AnyWordSpec with should.Matchers with TypeCheckedTr
 
   "A Controller" should {
     var state: State = IDLE
-
     val playerCount : Int = 1
     val startingMoney : Int = 100
     val controller = Controller(playerCount, startingMoney)
@@ -73,34 +72,42 @@ class ControllerSpec extends AnyWordSpec with should.Matchers with TypeCheckedTr
       val beWithin0and37 = be >= 0 and be <= 37
       i should beWithin0and37
     }
-    "have a method to calc a win" in {
+    "have a method to calculate a win" in {
       val win = controller.win(0, 20, 2)
       val expected = "Player 1 won their bet of $40. They now have $240 available."
       win should ===(expected)
     }
-    "have a method to calc a loose" in {
+    "have a method to calculate a loss" in {
       val win = controller.lose(0, 20)
       val expected = "Player 1 lost their bet of $20. They now have $240 available."
       win should ===(expected)
     }
-    "have a method to get the amount of Players" in {
+    "have a method to get the amount of players" in {
       val count = controller.getPlayerCount()
       val expected = 1
       count should ===(expected)
     }
-    "have a method to get the State" in {
+
+
+    "have a method to get the state" in {
       val state1 = controller.getState()
       state1 should ===(state)
     }
-    "have a method to print the State" in {
+    "have a method to print the state" in {
       val expected = ""
       controller.printState() should ===(expected)
     }
+    "have a method to change the state" in {
+      state = State.BET
+      controller.changeState(State.BET)
+      controller.getState() should ===(state)
+    }
 
-    "have a method to decide between the colours" in {
-      val bet = new Bet
-      bet.withBetType("c").withRandomNumber(12).withPlayerIndex(0).withBetAmount(20).withColor("r")
-      val colour = controller.color(bet)
+
+    "have a method to decide between the colors" in {
+      val bet1 = new Bet
+      bet1.withBetType("c").withRandomNumber(12).withPlayerIndex(0).withBetAmount(20).withColor("r")
+      val colour = controller.color(bet1)
       val expected = "Player 1 won their bet of $40. They now have $520 available."
       colour should ===(expected)
     }

@@ -7,6 +7,7 @@ import Roulette.controller.Controller
 import Roulette.controller.State
 
 import scala.io.StdIn.readLine
+import scala.util.control.Breaks._
 import scala.collection.immutable.VectorBuilder
 
 case class TUI(controller: Controller) extends Observer: //player: Player
@@ -27,7 +28,7 @@ case class TUI(controller: Controller) extends Observer: //player: Player
         print("\nTurn of player " + (player_index + 1) + "\n" + "Available money: $" + controller.players(player_index).getAvailableMoney() + "\n")
 
         val bet = new Bet
-        val bet_type = readLine("\nDo you want to place a bet on a number (n), on odd or even (o) or on a color (c)? If one of the players types (d), the betting phase will stop. >>>")
+        val bet_type = readLine("\nDo you want to place a bet on a number (n), on odd or even (o) or on a color (c)? If one of the players types (d), the betting phase will stop. (u)ndo (r)edo >>>")
 
         bet_type match
           case "n" =>
@@ -50,10 +51,10 @@ case class TUI(controller: Controller) extends Observer: //player: Player
             print("<<<Your bet was placed!>>>\n")
           case "d" =>
             controller.changeState(State.RESULT)
-          //case "z" => controller.redo
-          //case "y" => controller.undo
+          case "r" => controller.redo()
+          case "u" => controller.undo()
           
-          controller.updatePlayer(player_index, bet.bet_amount, false)
+          controller.changeMoney(player_index, bet.bet_amount, false)
       }
     }
     println(controller.printState())

@@ -1,20 +1,21 @@
 package Roulette.controller
 
-import Roulette.controller
-import Roulette.model.{Bet, Player}
-import Roulette.util.Observable
-import Roulette.controller.State._
-
-
 import scala.collection.immutable.VectorBuilder
 import scala.io.StdIn.readLine
 import scala.util.Random
 
+import Roulette.controller
+import Roulette.model.{Bet, Player, PlayerUpdate}
+import Roulette.util.{Observable, UndoManager}
+import Roulette.controller.State._
+
 class Controller(playerCount: Int, startingMoney: Int) extends Observable {
 
-  var state: State = IDLE
   val r = new Random()
+
+  var state: State = IDLE
   var players = Vector[Player]()
+  val undoManager = new UndoManager[Vector[Player]]
 
   def setupPlayers(): Unit = {
     val vc = VectorBuilder[Player]
@@ -24,13 +25,17 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
     players = vc.result()
   }
 
-  def updatePlayer(player_index: Int, money: Int, add: Boolean): Unit = {
+  def updatePlayer(player_index: Int, updated_money: Int): Vector[Player] = {
+    players.updated(player_index, Player(updated_money))
+  }
+
+  def changeMoney(player_index: Int, money: Int, add: Boolean): Unit = {
     var updated_money: Int = 0
     if (add == true)
       updated_money = players(player_index).getAvailableMoney() + money
     else
       updated_money = players(player_index).getAvailableMoney() - money
-    players = players.updated(player_index, Player(updated_money))
+    players = doStep(new PlayerUpdate(player_index, money, add, this))
   }
 
   def calculateBets(bets: Vector[Bet]): Vector[String] = {
@@ -55,7 +60,7 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
   def win(playerIndex: Int, bet: Int, winRate: Int): String = {
     val won_money: Int = bet * winRate
     val new_money: Int = players(playerIndex).getAvailableMoney() + won_money
-    updatePlayer(playerIndex, new_money, true)
+    changeMoney(playerIndex, new_money, true)
     val retvalue = "Player " + (playerIndex + 1) + " won their bet of $" + won_money + ". They now have $" + players(playerIndex).getAvailableMoney() + " available."
     notifyObservers
     retvalue
@@ -63,11 +68,21 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
 
   def lose(playerIndex: Int, bet: Int): String = {
     val lost_money: Int = bet
-    //val new_money: Int = players(playerIndex).getAvailableMoney() - lost_money
-    //updatePlayer(playerIndex, new_money, false)
     val retval = "Player " + (playerIndex + 1) + " lost their bet of $" + lost_money + ". They now have $" + players(playerIndex).getAvailableMoney() + " available."
     notifyObservers
     retval
+  }
+
+  def doStep(player_update: PlayerUpdate): Vector[Player] = {
+    undoManager.doStep(players, PutCommand(player_update))
+  }
+  
+  def undo(): Unit = {
+    players = undoManager.undoStep(players)
+  }
+  
+  def redo(): Unit = {
+    players = undoManager.redoStep(players)
   }
 
   def getPlayerCount(): Int = {

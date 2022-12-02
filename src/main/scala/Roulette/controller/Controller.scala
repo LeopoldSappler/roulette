@@ -30,12 +30,7 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
   }
 
   def changeMoney(player_index: Int, money: Int, add: Boolean): Unit = {
-    var updated_money: Int = 0
-    if (add == true)
-      updated_money = players(player_index).getAvailableMoney() + money
-    else
-      updated_money = players(player_index).getAvailableMoney() - money
-    players = doStep(new PlayerUpdate(player_index, money, add, this))
+    doStep(new PlayerUpdate(player_index, money, add))
   }
 
   def calculateBets(bets: Vector[Bet]): Vector[String] = {
@@ -60,7 +55,7 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
   def win(playerIndex: Int, bet: Int, winRate: Int): String = {
     val won_money: Int = bet * winRate
     val new_money: Int = players(playerIndex).getAvailableMoney() + won_money
-    changeMoney(playerIndex, new_money, true)
+    changeMoney(playerIndex, won_money, true)
     val retvalue = "Player " + (playerIndex + 1) + " won their bet of $" + won_money + ". They now have $" + players(playerIndex).getAvailableMoney() + " available."
     notifyObservers
     retvalue
@@ -73,16 +68,16 @@ class Controller(playerCount: Int, startingMoney: Int) extends Observable {
     retval
   }
 
-  def doStep(player_update: PlayerUpdate): Vector[Player] = {
-    undoManager.doStep(players, PutCommand(player_update))
+  def doStep(player_update: PlayerUpdate): Unit = {
+    undoManager.doStep(new PutCommand(player_update, this))
   }
   
   def undo(): Unit = {
-    players = undoManager.undoStep(players)
+    undoManager.undoStep()
   }
   
   def redo(): Unit = {
-    players = undoManager.redoStep(players)
+    undoManager.redoStep()
   }
 
   def getPlayerCount(): Int = {

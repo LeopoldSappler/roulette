@@ -37,24 +37,26 @@ case class TUI(controller: Controller) extends Observer: //player: Player
             bet.withBetType(bet_type).withRandomNumber(randomNumber).withPlayerIndex(player_index).withBetNumber(bet_number).withBetAmount(bet_amount)
             vc.addOne(bet)
             print("<<<Your bet was placed!>>>\n")
+            controller.changeMoney(player_index, bet.bet_amount, false)
           case "o" =>
             val bet_odd_or_even = readLine("Do you want to bet on odd (o) or even (e)? >>>")
             val bet_amount = readLine("How much money do you want to bet? >>>$").toInt
             bet.withBetType(bet_type).withRandomNumber(randomNumber).withPlayerIndex(player_index).withOddOrEven(bet_odd_or_even).withBetAmount(bet_amount)
             vc.addOne(bet)
             print("<<<Your bet was placed!>>>\n")
+            controller.changeMoney(player_index, bet.bet_amount, false)
           case "c" =>
             val bet_color = readLine("Do you want to bet on red (r) or black (b)? >>>")
             val bet_amount = readLine("How much money do you want to bet? >>>$").toInt
             bet.withBetType(bet_type).withRandomNumber(randomNumber).withPlayerIndex(player_index).withColor(bet_color).withBetAmount(bet_amount)
             vc.addOne(bet)
             print("<<<Your bet was placed!>>>\n")
+            controller.changeMoney(player_index, bet.bet_amount, false)
           case "d" =>
             controller.changeState(State.RESULT)
           case "r" => controller.redo()
           case "u" => controller.undo()
           
-          controller.changeMoney(player_index, bet.bet_amount, false)
       }
     }
     println(controller.printState())
